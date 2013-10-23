@@ -37,7 +37,7 @@ mainPanel(
 
         br(),
 
-        h3("Changes of individual data"),
+        h3("Changes of the individual data"),
         plotOutput("indvPlot", width="70%"),
 
         br(),
@@ -57,7 +57,7 @@ mainPanel(
 
         br(),
 
-        h3("Checking normality of difference scores"),
+        h3("Checking the normality of difference scores"),
         verbatimTextOutput("diffnorm.out"),
 
         br(),
