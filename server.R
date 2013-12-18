@@ -31,7 +31,7 @@ shinyServer(function(input, output) {
     })
 
 
-    output$distPlot <- renderPlot({
+    makedistPlot <- function(){
         x <- input$data1
         x <- as.numeric(unlist(strsplit(x, "[\n, \t]")))
         x <- x[!is.na(x)]
@@ -70,7 +70,7 @@ shinyServer(function(input, output) {
         breaks.y <- pretty(y, nclass.y)
         counts.y <- simple.bincount(y, breaks.y)
         counts.max.y <- max(counts.y)
-
+        
         counts.max <- max(c(counts.max.x, counts.max.y))
         
         
@@ -83,16 +83,20 @@ shinyServer(function(input, output) {
         p2 <- hist(y, xlim = c(xy.min, xy.max), ylim = c(0, counts.max*1.3))
         
         plot(p1, las=1, xlab = "Data 1 is expressed in blue; Data 2 in red. Vertical lines show the mean.",
-             main = "", col = rgb(0,0,1,1/4), xlim = c(xy.min,xy.max), ylim = c(0, counts.max*1.3))
+        main = "", col = rgb(0,0,1,1/4), xlim = c(xy.min,xy.max), ylim = c(0, counts.max*1.3))
         plot(p2, las=1, xlab = "", main = "", col = rgb(1,0,0,1/4), xlim = c(xy.min,xy.max), ylim = c(0, counts.max*1.3), add = T)
         
         abline(v = mean(x), col = "blue", lwd = 2)
         abline(v = mean(y), col = "red", lwd = 2)
-        
-    })
+    }
+
+    output$distPlot <- renderPlot({
+        print(makedistPlot())
+     })
     
     
-    output$boxPlot <- renderPlot({
+    
+    makeboxPlot <- function(){
         x <- input$data1
         x <- as.numeric(unlist(strsplit(x, "[\n, \t]")))
         x <- x[!is.na(x)]
@@ -115,10 +119,15 @@ shinyServer(function(input, output) {
         points(2.2, mean(y), pch = 18, col = "red", cex = 2)
         arrows(2.2, mean(y), 2.2, mean(y) + sd(y), length = 0.1, angle = 45, col = "red")
         arrows(2.2, mean(y), 2.2, mean(y) - sd(y), length = 0.1, angle = 45, col = "red")
+    }
+
+    output$boxPlot <- renderPlot({
+        print(makeboxPlot())
     })
     
     
-    output$indvPlot <- renderPlot({
+    
+    makeindvPlot <- function(){
         x <- input$data1
         x <- as.numeric(unlist(strsplit(x, "[\n, \t]")))
         x <- x[!is.na(x)]
@@ -132,24 +141,29 @@ shinyServer(function(input, output) {
         dat <- data.frame(xy, data.point)
         dat$indiv <- factor(c(rep(1:length(x)), rep(1:length(y))))
         each <- xyplot(xy ~ data.point, group = indiv,
-                       type = c("l"), data = dat, xlab ="", ylab="")
+        type = c("l"), data = dat, xlab ="", ylab="")
         a <- mean(x)
         b <- mean(y)
         value <- c(a, b)
         data.point2 <- factor(c(rep("Data 1", 1), rep("Data 2", 1)))
         dat2 <- data.frame(value, data.point2)
         all <- xyplot(value ~ data.point2, col = "black",
-                      lwd = 5, type = c("l"), data = dat, xlab = "", ylab = "")
+        lwd = 5, type = c("l"), data = dat, xlab = "", ylab = "")
         indv <- each + as.layer(all, axes = NULL)
-        print(indv)
+        # print(indv)
+    }
+
+    output$indvPlot <- renderPlot({
+        print(makeindvPlot())
     })
 
 
-    output$correlPlot <- renderPlot({
+
+    makecorrelPlot <- function(){
         x <- input$data1
         x <- as.numeric(unlist(strsplit(x, "[\n, \t]")))
         x <- x[!is.na(x)]
-    
+        
         y <- input$data2
         y <- as.numeric(unlist(strsplit(y, "[\n, \t]")))
         y <- y[!is.na(y)]
@@ -158,12 +172,16 @@ shinyServer(function(input, output) {
         xy.min <- xy.min - xy.min*0.1
         xy.max <- max(c(x,y))
         xy.max <- xy.max + xy.max*0.1
-
+        
         plot(x, y, las=1, pch = 16, xlab = "Data 1", ylab = "Data 2", main = "",
-             xlim = c(xy.min,xy.max), ylim = c(xy.min,xy.max))
+        xlim = c(xy.min,xy.max), ylim = c(xy.min,xy.max))
         lines(par()$usr[1:2], par()$usr[3:4], lty = 3)
+    }
 
+    output$correlPlot <- renderPlot({
+        print(makecorrelPlot())
     })
+
 
 
     testnorm <- reactive({
@@ -185,7 +203,8 @@ shinyServer(function(input, output) {
     })
 
 
-    output$distdiffPlot <- renderPlot({
+
+    makedistdiffPlot <- function(){
         x <- input$data1
         x <- as.numeric(unlist(strsplit(x, "[\n, \t]")))
         x <- x[!is.na(x)]
@@ -195,7 +214,7 @@ shinyServer(function(input, output) {
         y <- y[!is.na(y)]
         
         diff <- y - x
-
+        
         simple.bincount <- function(x, breaks) {
             nx <- length(diff)
             nbreaks <- length(breaks)
@@ -205,23 +224,23 @@ shinyServer(function(input, output) {
                 hi <- nbreaks
                 if (breaks[lo] <= x[i] && x[i] <= breaks[hi]) {
                     while (hi - lo >= 2) {
-                    new <- (hi + lo) %/% 2
-                    if(x[i] > breaks[new])
-                    lo <- new
-                    else
-                    hi <- new
+                        new <- (hi + lo) %/% 2
+                        if(x[i] > breaks[new])
+                        lo <- new
+                        else
+                        hi <- new
                     }
                     counts[lo] <- counts[lo] + 1
                 }
             }
             return(counts)
         }
-    
+        
         nclass <- nclass.FD(diff)
         breaks <- pretty(diff, nclass)
         counts <- simple.bincount(diff, breaks)
         counts.max <- max(counts)
-    
+        
         h <- hist(diff, las=1, breaks="FD", xlab= "Red vertical line shows the mean of the differences.",
         ylim=c(0, counts.max*1.2), main="", col = "cyan")
         rug(diff)
@@ -230,8 +249,13 @@ shinyServer(function(input, output) {
         yfit <- dnorm(xfit, mean = mean(diff, na.rm=T), sd = sd(diff, na.rm=T))
         yfit <- yfit * diff(h$mids[1:2]) * length(diff)
         lines(xfit, yfit, col = "blue", lwd = 2)
+    }
+
+    output$distdiffPlot <- renderPlot({
+        print(makedistdiffPlot())
     })
     
+
 
     diffnorm <- reactive({
         x <- input$data1
@@ -251,6 +275,7 @@ shinyServer(function(input, output) {
     })
     
     
+    
     t <- reactive({
         x <- input$data1
         x <- as.numeric(unlist(strsplit(x, "[\n, \t]")))
@@ -262,6 +287,7 @@ shinyServer(function(input, output) {
         
         t.test(y, x, paired=TRUE)
     })
+
 
 
     es <- reactive({
@@ -365,6 +391,7 @@ shinyServer(function(input, output) {
     })
 
 
+
     wsr <- reactive({
         x <- input$data1
         x <- as.numeric(unlist(strsplit(x, "[\n, \t]")))
@@ -389,6 +416,7 @@ shinyServer(function(input, output) {
             "effect eize r =", r1, "\n",
             "effect eize r (without considering ties) =", r2, "\n")
     })
+    
     
     
     power <- reactive({
@@ -427,8 +455,19 @@ shinyServer(function(input, output) {
     
 
 
+    info <- reactive({
+        info1 <- paste("This analysis was conducted with ", strsplit(R.version$version.string, " \\(")[[1]][1], ".", sep = "")# バージョン情報
+        info2 <- paste("It was executed on ", date(), ".", sep = "")# 実行日時
+        cat(sprintf(info1), "\n")
+        cat(sprintf(info2), "\n")
+    })
 
-# プロット以外は以下でoutputの指定が必要
+    output$info.out <- renderPrint({
+        info()
+    })
+
+
+
     output$textarea.out <- renderPrint({
         bs()
     })
@@ -456,6 +495,55 @@ shinyServer(function(input, output) {
     output$power.out <- renderPrint({
         power()
     })
-
+    
+    output$downloadDistPlot <- downloadHandler(
+    filename = function() {
+        paste('Distribution-', Sys.Date(), '.pdf', sep='')
+    },
+    content = function(FILE=NULL) {
+        pdf(file=FILE)
+		print(makedistPlot())
+		dev.off()
+	})
+    
+    output$downloadBoxPlot <- downloadHandler(
+    filename = function() {
+        paste('Boxplot-', Sys.Date(), '.pdf', sep='')
+    },
+    content = function(FILE=NULL) {
+        pdf(file=FILE)
+		print(makeboxPlot())
+		dev.off()
+	})
+    
+    output$downloadIndvPlot <- downloadHandler(
+    filename = function() {
+        paste('IndividualChanges-', Sys.Date(), '.pdf', sep='')
+    },
+    content = function(FILE=NULL) {
+        pdf(file=FILE)
+		print(makeindvPlot())
+		dev.off()
+	})
+    
+    output$downloadScatterPlot <- downloadHandler(
+    filename = function() {
+        paste('ScatterPlot-', Sys.Date(), '.pdf', sep='')
+    },
+    content = function(FILE=NULL) {
+        pdf(file=FILE)
+		print(makecorrelPlot())
+		dev.off()
+	})
+    
+    output$downloadDiffDistPlot <- downloadHandler(
+    filename = function() {
+        paste('DiffDistribution-', Sys.Date(), '.pdf', sep='')
+    },
+    content = function(FILE=NULL) {
+        pdf(file=FILE)
+		print(makedistdiffPlot())
+		dev.off()
+	})
 
 })
