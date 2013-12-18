@@ -8,6 +8,9 @@ shinyUI(pageWithSidebar(
 
     sidebarPanel(
 
+        p('Input values can be separated by', br(),
+          'newlines, spaces, commas, or tabs.'),
+
         p(strong("Data 1 (e.g., pretest):")),
         tags$textarea(id="data1", rows=20, cols=10, "70\n50\n80\n70\n25\n39\n40\n39\n90\n77\n39\n66\n70\n89\n69\n88\n49\n52\n36\n56\n67\n57"),
 
@@ -30,19 +33,27 @@ mainPanel(
         br(),
 
         h3("Overlayed histograms"),
+        downloadButton('downloadDistPlot', 'Download the plot as pdf'),
+
         plotOutput("distPlot"),
 
         h3("Box plots with individual data points"),
+        downloadButton('downloadBoxPlot', 'Download the plot as pdf'),
+
         plotOutput("boxPlot", width="80%"),
 
         br(),
 
         h3("Changes of the individual data"),
+        downloadButton('downloadIndvPlot', 'Download the plot as pdf'),
+
         plotOutput("indvPlot", width="70%"),
 
         br(),
 
         h3("Scatterplot"),
+        downloadButton('downloadScatterPlot', 'Download the plot as pdf'),
+
         plotOutput("correlPlot", width="70%", height="500px"),
 
         br(),
@@ -53,11 +64,13 @@ mainPanel(
         br(),
 
         h3("Distribution of the difference scores"),
+        downloadButton('downloadDiffDistPlot', 'Download the plot as pdf'),
         plotOutput("distdiffPlot", width="70%"),
 
         br(),
 
         h3("Checking the normality of difference scores"),
+
         verbatimTextOutput("diffnorm.out"),
 
         br(),
@@ -78,7 +91,13 @@ mainPanel(
         br(),
 
         h3("Power analysis (Just for a reference)"),
-        verbatimTextOutput("power.out")
+        verbatimTextOutput("power.out"),
+
+        br(),
+        br(),
+
+        strong('R session info'),
+        verbatimTextOutput("info.out")
 
         ),
 
@@ -91,10 +110,16 @@ mainPanel(
 
         br(),
 
-        strong('Input values'),
-            p('Input values can be separated by newlines, spaces, commas, or tabs.'),
-
+        strong('List of Packages Used'), br(),
+        code('library(shiny)'),br(),
+        code('library(psych)'),br(),
+        code('library(car)'),br(),
+        code('library(compute.es)'),br(),
+        code('library(pwr)'),br(),
+        code('library(lattice)'),br(),
+        code('library(latticeExtra)'),br(),
         br(),
+
 
         strong('Code'),
             p('Source code for this application is based on',
