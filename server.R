@@ -5,6 +5,8 @@ library(compute.es)
 library(pwr)
 library(lattice)
 library(latticeExtra)
+library(beeswarm)
+
 
 
 shinyServer(function(input, output) {
@@ -84,7 +86,7 @@ shinyServer(function(input, output) {
         
         plot(p1, las=1, xlab = "Data 1 is expressed in blue; Data 2 in red. Vertical lines show the mean.",
         main = "", col = rgb(0,0,1,1/4), xlim = c(xy.min,xy.max), ylim = c(0, counts.max*1.3))
-        plot(p2, las=1, xlab = "", main = "", col = rgb(1,0,0,1/4), xlim = c(xy.min,xy.max), ylim = c(0, counts.max*1.3), add = T)
+        plot(p2, las=1, xlab = "", main = "", col = rgb(1,0,0,1/4), xlim = c(xy.min,xy.max), ylim = c(0, counts.max*1.3), add = TRUE)
         
         abline(v = mean(x), col = "blue", lwd = 2)
         abline(v = mean(y), col = "red", lwd = 2)
@@ -110,7 +112,7 @@ shinyServer(function(input, output) {
         
         boxplot(score ~ group, las=1, xlab= "Means and +/-1 SDs are displayed in red.")
         
-        stripchart(score ~ group, pch = 16, , vert = TRUE,  add = TRUE)
+        beeswarm(score ~ group, col = 4, pch = 16, add = TRUE)
         
         points(1.2, mean(x), pch = 18, col = "red", cex = 2)
         arrows(1.2, mean(x), 1.2, mean(x) + sd(x), length = 0.1, angle = 45, col = "red")
@@ -213,7 +215,7 @@ shinyServer(function(input, output) {
         y <- as.numeric(unlist(strsplit(y, "[\n, \t]")))
         y <- y[!is.na(y)]
         
-        diff <- y - x
+        diff <- x - y
         
         simple.bincount <- function(x, breaks) {
             nx <- length(diff)
@@ -266,7 +268,7 @@ shinyServer(function(input, output) {
         y <- as.numeric(unlist(strsplit(y, "[\n, \t]")))
         y <- y[!is.na(y)]
         
-        diff <- y - x
+        diff <- x - y
         
         diff.1ks <- ks.test(scale(diff), "pnorm")
         diff.1sh <- shapiro.test(diff)
@@ -285,7 +287,7 @@ shinyServer(function(input, output) {
         y <- as.numeric(unlist(strsplit(y, "[\n, \t]")))
         y <- y[!is.na(y)]
         
-        t.test(y, x, paired=TRUE)
+        t.test(x, y, paired=TRUE)
     })
 
 
@@ -307,7 +309,7 @@ shinyServer(function(input, output) {
         sd2 <- sd(y)
         n2 <- length(y)
         
-        diff <- y - x
+        diff <- x - y
         
         d <- abs(mean(diff)/(sd(diff)/sqrt(2*(1-cor(x, y)))))
         var.d <- ((1/n1)+((d^2)/(2*n1)))*(2*(1-cor(x, y)))
@@ -317,9 +319,9 @@ shinyServer(function(input, output) {
         g <- j * d
         var.g <- j^2 * var.d
         
-        a <- ((n1 + n2)^2)/(n1 * n2)
-        r <- d/sqrt((d^2) + a)
-        var.r <- (a^2 * var.d)/(d^2 + a)^3
+        #a <- ((n1 + n2)^2)/(n1 * n2)
+        #r <- d/sqrt((d^2) + a)
+        #var.r <- (a^2 * var.d)/(d^2 + a)^3
         
         alpha <- 0.05
         crit <- qt(alpha/2, df, lower.tail = FALSE)
@@ -327,9 +329,17 @@ shinyServer(function(input, output) {
         lower.d <- d - crit * sqrt(var.d)
         upper.d <- d + crit * sqrt(var.d)
         
+        #lower.d2 <- d - 1.96 * sqrt(var.d)
+        #upper.d2 <- d + 1.96 * sqrt(var.d)
+        
         lower.g <- g - crit * sqrt(var.g)
         upper.g <- g + crit * sqrt(var.g)
-        
+
+        #lower.g2 <- d - 1.96 * sqrt(var.d)
+        #upper.g2 <- d + 1.96 * sqrt(var.d)
+
+
+        cat("=======================================================", "\n")
         cat(" Mean difference / within-groups SD:", "\n",
         "(Based on Borenstein et al., 2009) ", "\n",
         "\n",
@@ -338,56 +348,34 @@ shinyServer(function(input, output) {
         "\n",
         "  g [95% CI] =", g, "[", lower.g, ",", upper.g, "]", "\n",
         "   var(g) =", var.g, "\n",
-        "\n", 
-        "  r =", r, "\n",
-        "\n" 
+        "\n"
+        )
+
+
+
+        delta <- abs(mean(diff)/sd(x))
+
+        cat("=======================================================", "\n")
+        cat(" Mean difference / SD of Data 1 (e.g., pretest):", "\n",
+        "\n",
+        "  Delta =", delta, "\n",
+        "\n"
         )
         
-        d2 <- mean(diff)/sd(diff)
-        var.d2 <- ((1/n1)+((d^2)/(2*n1)))*(2*(1-cor(x, y)))
-        
-        # df <- n1 - 1
-        # j <- 1 - (3/(4 * df - 1))
-        g2 <- j * d2
-        var.g2 <- j^2 * var.d2
-        
+
+
         result.dependent<-t.test(x,y,paired=TRUE)
         paired.t<-result.dependent$statistic
         r2 <- sqrt(paired.t^2/(paired.t^2+df))
         r2 <- r2[[1]]
-        
-        alpha <- 0.05
-        crit <- qt(alpha/2, df, lower.tail = FALSE)
-        
-        lower.d2 <- d2 - crit * sqrt(var.d2)
-        upper.d2 <- d2 + crit * sqrt(var.d2)
-        
-        lower.g2 <- g2 - crit * sqrt(var.g2)
-        upper.g2 <- g2 + crit * sqrt(var.g2)
-        
-        delta <- mean(diff)/sd(x)
-        
-        cat("\n")
-        cat(" Mean difference / SD of mean difference:", "\n",
-        "(Based on Kline, 2004) ", "\n",
-        "\n",
-        "  d [95% CI] =", d2, "[", lower.d2, ",", upper.d2, "]", "\n",
-        "   var(d) =", var.d2, "\n",
-        "\n",
-        "  g [95% CI] =", g2, "[", lower.g2, ",", upper.g2, "]", "\n",
-        "   var(g) =", var.g2, "\n",
+
+        cat("=======================================================", "\n")
+        cat(" r --- sqrt(paired.t^2/(paired.t^2+df)):", "\n",
         "\n",
         "  r =", r2, "\n",
         "\n"
         )
-        
-        cat("\n")
-        cat(" Mean difference / SD of Data 1 (e.g., pretest):", "\n",
-        "\n", 
-        "  Delta =", delta, "\n",
-        "\n" 
-        )
-
+ 
     })
 
 
@@ -401,7 +389,7 @@ shinyServer(function(input, output) {
         y <- as.numeric(unlist(strsplit(y, "[\n, \t]")))
         y <- y[!is.na(y)]
 
-        result <- wilcox.test(y, x, paired=TRUE, correct=FALSE)
+        result <- wilcox.test(x, y, paired=TRUE, correct=FALSE)
         
         pval <- result$p.value
         z <- qnorm(1-(pval/2))
@@ -428,14 +416,14 @@ shinyServer(function(input, output) {
         y <- as.numeric(unlist(strsplit(y, "[\n, \t]")))
         y <- y[!is.na(y)]
         
-        diff <- y - x
+        diff <- x - y
         d <- mean(diff)/sd(diff)
         n <- length(x)
         
         posthoc <- power.t.test(n = n, delta=d, sig.level=.05, type='paired', strict = TRUE)$power
         
         future <- ceiling(power.t.test(power = 0.8, delta = d, sig.level = 0.05,
-                          type = 'paired', strict = T, alternative = "two.sided")$n)
+                          type = 'paired', strict = TRUE, alternative = "two.sided")$n)
                           
         cat(" Post hoc (observed) power =", round(posthoc, 3), "\n",
             "\n",
@@ -496,54 +484,4 @@ shinyServer(function(input, output) {
         power()
     })
     
-    output$downloadDistPlot <- downloadHandler(
-    filename = function() {
-        paste('Distribution-', Sys.Date(), '.pdf', sep='')
-    },
-    content = function(FILE=NULL) {
-        pdf(file=FILE)
-		print(makedistPlot())
-		dev.off()
-	})
-    
-    output$downloadBoxPlot <- downloadHandler(
-    filename = function() {
-        paste('Boxplot-', Sys.Date(), '.pdf', sep='')
-    },
-    content = function(FILE=NULL) {
-        pdf(file=FILE)
-		print(makeboxPlot())
-		dev.off()
-	})
-    
-    output$downloadIndvPlot <- downloadHandler(
-    filename = function() {
-        paste('IndividualChanges-', Sys.Date(), '.pdf', sep='')
-    },
-    content = function(FILE=NULL) {
-        pdf(file=FILE)
-		print(makeindvPlot())
-		dev.off()
-	})
-    
-    output$downloadScatterPlot <- downloadHandler(
-    filename = function() {
-        paste('ScatterPlot-', Sys.Date(), '.pdf', sep='')
-    },
-    content = function(FILE=NULL) {
-        pdf(file=FILE)
-		print(makecorrelPlot())
-		dev.off()
-	})
-    
-    output$downloadDiffDistPlot <- downloadHandler(
-    filename = function() {
-        paste('DiffDistribution-', Sys.Date(), '.pdf', sep='')
-    },
-    content = function(FILE=NULL) {
-        pdf(file=FILE)
-		print(makedistdiffPlot())
-		dev.off()
-	})
-
 })

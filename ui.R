@@ -33,26 +33,22 @@ mainPanel(
         br(),
 
         h3("Overlayed histograms"),
-        downloadButton('downloadDistPlot', 'Download the plot as pdf'),
 
         plotOutput("distPlot"),
 
         h3("Box plots with individual data points"),
-        downloadButton('downloadBoxPlot', 'Download the plot as pdf'),
 
         plotOutput("boxPlot", width="80%"),
 
         br(),
 
         h3("Changes of the individual data"),
-        downloadButton('downloadIndvPlot', 'Download the plot as pdf'),
 
         plotOutput("indvPlot", width="70%"),
 
         br(),
 
         h3("Scatterplot"),
-        downloadButton('downloadScatterPlot', 'Download the plot as pdf'),
 
         plotOutput("correlPlot", width="70%", height="500px"),
 
@@ -64,7 +60,7 @@ mainPanel(
         br(),
 
         h3("Distribution of the difference scores"),
-        downloadButton('downloadDiffDistPlot', 'Download the plot as pdf'),
+
         plotOutput("distdiffPlot", width="70%"),
 
         br(),
