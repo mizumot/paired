@@ -444,8 +444,8 @@ shinyServer(function(input, output) {
 
 
     info <- reactive({
-        info1 <- paste("This analysis was conducted with ", strsplit(R.version$version.string, " \\(")[[1]][1], ".", sep = "")# バージョン情報
-        info2 <- paste("It was executed on ", date(), ".", sep = "")# 実行日時
+        info1 <- paste("This analysis was conducted with ", strsplit(R.version$version.string, " \\(")[[1]][1], ".", sep = "")
+        info2 <- paste("It was executed on ", date(), ".", sep = "")
         cat(sprintf(info1), "\n")
         cat(sprintf(info2), "\n")
     })
