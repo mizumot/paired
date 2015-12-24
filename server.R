@@ -401,8 +401,8 @@ shinyServer(function(input, output) {
         print(result)
         
         cat(" z-value =", z, "\n",
-            "effect eize r =", r1, "\n",
-            "effect eize r (without considering ties) =", r2, "\n")
+            "effect size r =", r1, "\n",
+            "effect size r (without considering ties) =", r2, "\n")
     })
     
     
